@@ -242,6 +242,28 @@ if 'urls' not in st.session_state:
 if 'domain' not in st.session_state:
     st.session_state.domain = "https://shortlinky.streamlit.app/"
 
+# Check if there's a URL code in the query parameters
+query_params = st.experimental_get_query_params()
+if "code" in query_params:
+    code = query_params["code"][0]
+    if code in st.session_state.urls:
+        url_data = st.session_state.urls[code]
+        
+        # Check if URL is expired
+        if url_data["expiration_date"]:
+            expiration_date = datetime.datetime.fromisoformat(url_data["expiration_date"])
+            if datetime.datetime.now() > expiration_date:
+                st.error("This link has expired.")
+                st.stop()
+        
+        # Update click count
+        update_click_count(code)
+        
+        # Redirect to the original URL
+        st.markdown(f'<meta http-equiv="refresh" content="0;url={url_data["original_url"]}">', unsafe_allow_html=True)
+        st.markdown(f'Redirecting to {url_data["original_url"]}...')
+        st.stop()
+
 # Functions for URL shortening
 def is_valid_url(url):
     """Basic URL validation"""
@@ -375,7 +397,7 @@ with st.container():
                 }
                 save_urls()
                 
-                short_url = f"{st.session_state.domain}{short_code}"
+                short_url = f"{st.session_state.domain}?code={short_code}"
                 
                 # Display success message and shortened URL
                 st.success(f"URL shortened successfully!")
@@ -426,7 +448,7 @@ if st.session_state.urls:
         urls_data.append({
             "short_code": code,
             "original_url": data["original_url"],
-            "short_url": f"{st.session_state.domain}{code}",
+            "short_url": f"{st.session_state.domain}?code={code}",
             "created_at": datetime.datetime.fromisoformat(data["created_at"]),
             "clicks": data["clicks"],
             "last_clicked": time_ago(data["last_clicked"]),
