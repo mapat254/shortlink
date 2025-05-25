@@ -240,7 +240,7 @@ if 'urls' not in st.session_state:
         st.session_state.urls = {}
 
 if 'domain' not in st.session_state:
-    st.session_state.domain = "http://linksnip.io/"
+    st.session_state.domain = "https://shortlinky.streamlit.app/"
 
 # Functions for URL shortening
 def is_valid_url(url):
